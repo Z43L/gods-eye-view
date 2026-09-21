@@ -62,9 +62,14 @@ test('root config retains existing named exports and standalone provider order',
   for (const [name, value] of Object.entries(providers))
     assert.equal(compatibility[name], value, name);
   const config = standaloneConfig({ mode: 'test' });
+  const actualNames = config.plugins.map((plugin) => plugin?.name);
+  const expectedNames = providers
+    .localProviderPlugins()
+    .map((plugin) => plugin.name);
   assert.deepEqual(
-    config.plugins.slice(2, -2).map((plugin) => plugin.name),
-    providers.localProviderPlugins().map((plugin) => plugin.name),
+    actualNames.slice(2, -2),
+    expectedNames,
+    `standalone plugin order mismatch\nactual:   ${JSON.stringify(actualNames)}\nexpected: ${JSON.stringify(expectedNames)}`,
   );
   assert.equal(config.plugins.at(-3).name, 'gev-key-setup');
   assert.equal(config.plugins.at(-2).name, 'gev-agent-bridge');
