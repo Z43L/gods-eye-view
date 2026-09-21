@@ -57,6 +57,12 @@ const run = (cmd, cmdArgs, opts = {}) =>
 
 async function whichCloudflared() {
   try {
+    await run('cloudflared', ['--version']);
+    return 'cloudflared';
+  } catch {
+    /* not directly runnable on PATH */
+  }
+  try {
     await run(process.platform === 'win32' ? 'where' : 'which', [
       'cloudflared',
     ]);
@@ -71,6 +77,11 @@ async function installCloudflared() {
   if (os === 'darwin') {
     console.log('[tunnel] installing cloudflared via Homebrew…');
     await run('brew', ['install', 'cloudflared'], { stdio: 'inherit' });
+    return 'cloudflared';
+  }
+  if (os === 'android') {
+    console.log('[tunnel] installing cloudflared via pkg…');
+    await run('pkg', ['install', '-y', 'cloudflared'], { stdio: 'inherit' });
     return 'cloudflared';
   }
   if (os === 'linux') {
@@ -182,13 +193,13 @@ async function main() {
       if (/ERR|error|failed/i.test(line))
         process.stderr.write(`[cloudflared] ${line}\n`);
     }
-    // Match only the real tunnel URL on its own log line — never the
-    // api.trycloudflare.com endpoint that appears in error messages.
+    // Match only the real tunnel URL — never the api.trycloudflare.com
+    // endpoint that appears in error messages.
     const match = text.match(
-      /^[^\S\r\n]*https:\/\/(?!api\.)[a-z0-9-]+\.trycloudflare\.com[^\S\r\n]*$/m,
+      /https:\/\/(?!api\.)[a-z0-9-]+\.trycloudflare\.com/,
     );
     if (match && !publicUrl) {
-      publicUrl = match[0];
+      publicUrl = match[0].trim();
       printSummary(publicUrl);
       printed = true;
     }
