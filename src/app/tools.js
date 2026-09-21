@@ -2,6 +2,7 @@ import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
+import { initAgentChannel } from '../agent/channel.js';
 import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
 import {
   installRenderGovernor,
@@ -137,5 +138,35 @@ export function createApplicationTools({
       delete window.__gevVoiceCommands;
   });
   debug.voiceCommands = voiceCommands;
-  return { sceneDirector, annotations, voiceCommands };
+  // Agent bridge: lets an external agent (MCP server in `mcp/`) drive the app
+  // with the same action vocabulary as voice mode. Never breaks boot.
+  let agentChannel = { active: false, stop: () => {} };
+  try {
+    agentChannel = initAgentChannel({
+      ...voice,
+      floorServices: operations.surface.groundFloor,
+      annotationResolver: operations.annotationResolver,
+      searchNavigation: operations.searchAndFlyTo,
+      signal,
+      placeSearch,
+      viewer,
+      styleManager,
+      dataManager,
+      sceneDirector,
+      annotations,
+    });
+    debug.agentChannel = agentChannel;
+  } catch {
+    /* bridge unavailable — the app runs fine without it */
+  }
+  defer(() => {
+    try {
+      agentChannel.stop();
+    } catch {
+      /* already stopped */
+    }
+    if (window.__gevAgentChannel === agentChannel)
+      delete window.__gevAgentChannel;
+  });
+  return { sceneDirector, annotations, voiceCommands, agentChannel };
 }

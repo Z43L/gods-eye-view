@@ -44,7 +44,10 @@
     "test:track": "node scripts/track-regression.mjs",
     "qa:map-source-tray": "node scripts/qa-map-source-tray.mjs",
     "check:boundaries": "node scripts/check-import-directions.mjs && node scripts/check-package-boundaries.mjs",
-    "qa:transit": "node scripts/qa-transit.mjs"
+    "qa:transit": "node scripts/qa-transit.mjs",
+    "mcp": "node mcp/server.mjs",
+    "mcp:install": "npm --prefix mcp install --no-audit --no-fund",
+    "mcp:test": "npm --prefix mcp test"
   },
   "dependencies": {
     "@mapbox/vector-tile": "^3.0.0",

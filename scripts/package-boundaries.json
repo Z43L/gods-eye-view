@@ -1207,6 +1207,8 @@
       "src/data/bhoteKoshiIncidentPlaces.js",
       "src/data/bhoteKoshiFloodPath.js",
       "src/data/bhoteKoshiShotPaths.js",
+      "src/agent/bridgeQueue.mjs",
+      "src/agent/channel.js",
       "src/annotations/annotationEngine.js",
       "src/annotations/annotationResolver.js",
       "src/annotations/hybridAnnotationRenderer.js",
