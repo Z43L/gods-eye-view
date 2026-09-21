@@ -68,6 +68,101 @@
     </div>
   </div>
 
+  <!-- Reconnaissance & Network Intel Panel -->
+  <div id="recon-panel" class="panel-collapsible collapsed" data-panel-id="recon-panel">
+    <div class="panel-glow"></div>
+    <div class="recon-panel-inner">
+      <div class="panel-header">
+        <span class="panel-title">RECON INTEL</span>
+        <span class="panel-divider"></span>
+        <button class="panel-collapse-btn" data-collapse-target="recon-panel" title="Collapse panel">+</button>
+      </div>
+
+      <div class="recon-tabs" role="tablist" aria-label="Recon operations">
+        <button id="recon-tab-scan" class="recon-tab-btn active" role="tab" aria-selected="true" data-tab="scan" type="button">SCAN</button>
+        <button id="recon-tab-dossier" class="recon-tab-btn" role="tab" aria-selected="false" data-tab="dossier" type="button">DOSSIER</button>
+        <button id="recon-tab-targets" class="recon-tab-btn" role="tab" aria-selected="false" data-tab="targets" type="button">TARGETS</button>
+      </div>
+
+      <!-- SCAN VIEW (Active Fingerprint, Traceroute, DNS) -->
+      <div id="recon-view-scan" class="recon-view">
+        <div class="recon-form-group">
+          <label for="recon-target-input">Target Host / IP / Domain</label>
+          <div class="recon-input-row">
+            <input id="recon-target-input" type="text" placeholder="e.g. 1.1.1.1 or cloudflare.com" autocomplete="off" spellcheck="false" />
+            <select id="recon-target-type" aria-label="Target Classification Type">
+              <option value="server">Server</option>
+              <option value="camera">Camera / CCTV</option>
+              <option value="scada">SCADA / ICS</option>
+              <option value="satellite">Ground Station</option>
+              <option value="infrastructure">Infrastructure</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="recon-form-group">
+          <div class="recon-label-row">
+            <label for="recon-ports-input">Target Ports</label>
+            <div class="recon-port-presets">
+              <button type="button" class="recon-chip-btn" data-ports="80,443,554,8080,8443">Web/CCTV</button>
+              <button type="button" class="recon-chip-btn" data-ports="21,22,25,53,80,443,3306,3389,8080">Core</button>
+              <button type="button" class="recon-chip-btn" data-ports="554,8554,1935">Streams</button>
+            </div>
+          </div>
+          <input id="recon-ports-input" type="text" value="80, 443, 554, 8080, 8443" placeholder="80, 443, 554..." />
+        </div>
+
+        <div class="recon-form-group">
+          <div class="recon-label-row">
+            <label for="recon-hops-input">Max Traceroute Hops</label>
+            <output id="recon-hops-val" for="recon-hops-input">20</output>
+          </div>
+          <input id="recon-hops-input" class="gev-quantitative-slider" type="range" min="5" max="35" value="20" aria-label="Max hops" />
+        </div>
+
+        <div class="recon-actions-grid">
+          <button id="recon-run-full-btn" class="scene-btn recon-btn-primary" type="button" title="Run DNS + Fingerprint + Traceroute">FULL RECON</button>
+          <button id="recon-run-fingerprint-btn" class="scene-btn" type="button" title="Run HTTP/TLS/RTSP Fingerprint">FINGERPRINT</button>
+          <button id="recon-run-traceroute-btn" class="scene-btn" type="button" title="Run Network Traceroute & Geo-Probe">TRACEROUTE</button>
+          <button id="recon-run-dns-btn" class="scene-btn" type="button" title="Run DNS Record & Zone Discovery">DNS RECON</button>
+        </div>
+
+        <div id="recon-scan-status" class="recon-status-bar" role="status" aria-live="polite">
+          <span class="recon-status-dot"></span>
+          <span id="recon-status-text">Enter target to launch reconnaissance</span>
+        </div>
+      </div>
+
+      <!-- DOSSIER VIEW (Consolidated SQLite Intelligence) -->
+      <div id="recon-view-dossier" class="recon-view" hidden>
+        <div class="recon-dossier-search-row">
+          <input id="recon-dossier-id-input" type="text" placeholder="Target ID (e.g. host:1.1.1.1)" spellcheck="false" />
+          <button id="recon-dossier-fetch-btn" class="scene-btn" type="button">LOAD</button>
+        </div>
+        <div id="recon-dossier-content" class="recon-dossier-content">
+          <div class="recon-empty-state">No dossier loaded. Run a scan or select a target.</div>
+        </div>
+      </div>
+
+      <!-- TARGETS VIEW (Cached Scans & SQLite Database) -->
+      <div id="recon-view-targets" class="recon-view" hidden>
+        <div class="recon-targets-filter-row">
+          <input id="recon-tag-filter" type="text" placeholder="Filter tag (e.g. cloudflare, cctv)" spellcheck="false" />
+          <select id="recon-limit-select" aria-label="Target record limit">
+            <option value="20">20</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+          <button id="recon-refresh-targets-btn" class="scene-btn" type="button">REFRESH</button>
+        </div>
+        <div id="recon-targets-list" class="recon-targets-list">
+          <div class="recon-empty-state">Loading target repository...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Scene Director Panel -->
   <div id="scene-panel" class="panel-collapsible collapsed" data-panel-id="scene-panel">
     <div class="panel-glow"></div>

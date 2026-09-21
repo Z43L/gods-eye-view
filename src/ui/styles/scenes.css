@@ -402,6 +402,8 @@
 #cctv-panel.collapsed #cctv-meta,
 #cctv-panel.collapsed .cctv-summary-label,
 #cctv-panel.collapsed #cctv-summary,
+#recon-panel.collapsed .recon-tabs,
+#recon-panel.collapsed .recon-view,
 #scene-panel.collapsed .scene-controls,
 #scene-panel.collapsed .scene-shot-list,
 #scene-panel.collapsed .scene-progress,
@@ -415,6 +417,7 @@
 
 #data-panel.collapsed,
 #cctv-panel.collapsed,
+#recon-panel.collapsed,
 #scene-panel.collapsed {
   width: var(--left-collapsed-width);
 }
@@ -425,6 +428,7 @@
 
 #data-panel.collapsed .panel-title,
 #cctv-panel.collapsed .panel-title,
+#recon-panel.collapsed .panel-title,
 #radio-panel.collapsed .panel-title,
 #scene-panel.collapsed .panel-title {
   font-size: 8px;
@@ -434,6 +438,7 @@
 #control-panel.collapsed .panel-inner,
 #data-panel.collapsed .data-panel-inner,
 #cctv-panel.collapsed .cctv-panel-inner,
+#recon-panel.collapsed .recon-panel-inner,
 #radio-panel.collapsed .radio-panel-inner,
 #scene-panel.collapsed .scene-panel-inner,
 #param-slider-panel.collapsed,
@@ -444,6 +449,7 @@
 #control-panel.collapsed .panel-header,
 #data-panel.collapsed .panel-header,
 #cctv-panel.collapsed .panel-header,
+#recon-panel.collapsed .panel-header,
 #radio-panel.collapsed .panel-header,
 #global-context-panel.collapsed .panel-header,
 #scene-panel.collapsed .panel-header,

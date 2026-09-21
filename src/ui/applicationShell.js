@@ -15,6 +15,7 @@ import { CockpitCoordinator } from './cockpitCoordinator.js';
 import { ContextControls } from './context.js';
 import { CctvControls } from './cctv.js';
 import { RadioControls } from './radio.js';
+import { ReconControls } from './reconControls.js';
 import { LocationNavigation } from './locationNavigation.js';
 import { bindClearLayersControl } from './layers.js';
 import { bindCameraOrientationControls } from './cameraOrientationControls.js';
@@ -536,6 +537,7 @@ export class StyleManager extends ShellFacade {
     this._initRightPanelAdaptiveLayout();
     this._initRadioPanel();
     this._initCctvPanel();
+    this._initReconPanel();
     this._initGlobalContextPanel();
     this._initLocationBar();
     this._initShareButton();
@@ -916,6 +918,27 @@ export class StyleManager extends ShellFacade {
         showToast: (message) => this._showToast(message),
         syncViewport: () => this._syncCctvPanelViewport(),
         setSplitFlapText,
+      },
+    });
+  }
+
+  /** Compose reconnaissance and network intelligence panel controls. */
+  _initReconPanel() {
+    this._reconControls?.destroy();
+    this._reconControls = new ReconControls({
+      elements: {
+        _reconPanel: this._reconPanel,
+      },
+      actions: {
+        showToast: (message) => this._showToast(message),
+        flyToCoordinates: ({ latitude, longitude, height = 25000 }) => {
+          if (this.viewer && Cesium?.Cartesian3) {
+            this.viewer.camera.flyTo({
+              destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
+              duration: 1.8,
+            });
+          }
+        },
       },
     });
   }
@@ -1471,6 +1494,7 @@ export class StyleManager extends ShellFacade {
     this._cameraOrientationControls?.destroy();
     this._clearLayersControl?.destroy();
     this._cctvControls?.destroy();
+    this._reconControls?.destroy();
     this._radioControls?.destroy();
     this._cockpitCoordinator.stop();
     this._visualSettings.stop();

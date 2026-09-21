@@ -1,0 +1,614 @@
+/* ── Reconnaissance & Network Threat Intel Panel ── */
+#recon-panel {
+  --panel-expanded-width: 380px;
+  position: fixed;
+  top: calc(var(--left-stack-top) + (var(--left-stack-gap) * 3));
+  left: var(--left-stack-x);
+  right: auto;
+  bottom: auto;
+  z-index: 100;
+  width: var(--panel-expanded-width);
+  max-height: calc(100vh - 24px);
+}
+
+#left-panel-stack > #recon-panel {
+  order: 3;
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  z-index: auto;
+  max-height: none;
+  flex: 0 0 auto;
+  min-height: 0;
+  pointer-events: auto;
+}
+
+#left-panel-stack > #recon-panel:not(.collapsed) {
+  box-sizing: border-box;
+  flex: 0 1 var(--left-panel-allocated-height, auto);
+  height: var(--left-panel-allocated-height, auto);
+  max-height: var(--left-panel-allocated-height, 100%);
+}
+
+#left-panel-stack > #recon-panel:not(.collapsed) .recon-panel-inner {
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 212, 255, 0.4) rgba(255, 255, 255, 0.05);
+}
+
+.recon-panel-inner {
+  position: relative;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--panel-radius);
+  padding: 14px 16px 16px;
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#recon-panel .panel-glow {
+  position: absolute;
+  inset: -18px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 212, 255, 0.16) 0%,
+    transparent 65%
+  );
+  filter: blur(16px);
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+#recon-panel.collapsed {
+  width: var(--left-collapsed-width);
+  cursor: pointer;
+}
+
+#recon-panel.collapsed .recon-tabs,
+#recon-panel.collapsed .recon-view {
+  display: none !important;
+}
+
+#recon-panel.collapsed .recon-panel-inner {
+  padding-bottom: 10px;
+}
+
+#recon-panel.collapsed .panel-header {
+  margin-bottom: 2px;
+}
+
+/* Tabs */
+.recon-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.recon-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 8px;
+  min-height: 32px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+.recon-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.recon-tab-btn.active {
+  color: var(--accent);
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+}
+
+/* Views */
+.recon-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recon-view[hidden] {
+  display: none !important;
+}
+
+/* Form controls */
+.recon-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recon-form-group label,
+.recon-label-row label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.recon-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recon-input-row {
+  display: flex;
+  gap: 6px;
+}
+
+.recon-panel-inner input[type="text"],
+.recon-panel-inner select {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  outline: none;
+  transition: var(--transition-fast);
+  min-height: 34px;
+  box-sizing: border-box;
+}
+
+.recon-panel-inner input[type="text"]:focus,
+.recon-panel-inner select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
+}
+
+.recon-port-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.recon-chip-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 3px 7px;
+  min-height: 24px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.recon-chip-btn:hover,
+.recon-chip-btn:active {
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--accent);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+/* Actions grid */
+.recon-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.recon-btn-primary {
+  grid-column: 1 / -1;
+  background: rgba(0, 212, 255, 0.18) !important;
+  border-color: rgba(0, 212, 255, 0.5) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+  min-height: 36px;
+}
+
+.recon-btn-primary:hover,
+.recon-btn-primary:active {
+  background: rgba(0, 212, 255, 0.3) !important;
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.4);
+}
+
+/* Status Bar */
+.recon-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.recon-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.recon-status-bar.busy .recon-status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: recon-pulse 1s infinite alternate;
+}
+
+.recon-status-bar.success .recon-status-dot {
+  background: #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+}
+
+.recon-status-bar.error .recon-status-dot {
+  background: #ff4444;
+  box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+}
+
+@keyframes recon-pulse {
+  from { opacity: 0.3; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1.2); }
+}
+
+/* Dossier Content */
+.recon-dossier-search-row,
+.recon-targets-filter-row {
+  display: flex;
+  gap: 6px;
+}
+
+.recon-dossier-content,
+.recon-targets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding-right: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.recon-empty-state {
+  text-align: center;
+  padding: 24px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+/* Dossier Cards */
+.recon-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recon-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 6px;
+}
+
+.recon-card-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.recon-badge {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+.recon-badge.accent {
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--accent);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.recon-badge.warn {
+  background: rgba(255, 170, 0, 0.15);
+  color: #ffaa00;
+  border-color: rgba(255, 170, 0, 0.3);
+}
+
+.recon-badge.danger {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, 0.3);
+}
+
+.recon-meta-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.recon-meta-key {
+  color: var(--text-dim);
+}
+
+.recon-meta-val {
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+/* Table wrapper & Table */
+.recon-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.recon-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  min-width: 240px;
+}
+
+.recon-table th {
+  text-align: left;
+  color: var(--text-dim);
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.recon-table td {
+  padding: 5px 6px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.recon-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+}
+
+/* Hops list */
+.recon-hop-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 3px;
+  gap: 6px;
+}
+
+.recon-hop-num {
+  color: var(--text-dim);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.recon-hop-ip {
+  color: var(--text-primary);
+  flex: 1;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recon-hop-geo {
+  color: var(--text-secondary);
+  font-size: 8px;
+  flex: 1;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recon-hop-rtt {
+  font-weight: 600;
+  width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.recon-hop-fly-btn {
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 4px;
+  color: var(--accent);
+  padding: 3px 6px;
+  min-height: 22px;
+  font-size: 8px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.recon-hop-fly-btn:hover,
+.recon-hop-fly-btn:active {
+  background: rgba(0, 212, 255, 0.28);
+}
+
+/* Target item in cached targets list */
+.recon-target-item {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.recon-target-item:hover,
+.recon-target-item:active {
+  border-color: rgba(0, 212, 255, 0.35);
+  background: rgba(0, 212, 255, 0.06);
+}
+
+.recon-target-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recon-target-host {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.recon-target-date {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim);
+}
+
+.recon-target-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ── Mobile Responsive Rules ────────────────────────── */
+@media (max-width: 720px) {
+  #recon-panel {
+    top: auto;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    bottom: auto;
+    max-height: none;
+  }
+
+  #recon-panel.collapsed {
+    width: 100%;
+  }
+
+  .recon-panel-inner {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .recon-tabs {
+    gap: 4px;
+  }
+
+  .recon-tab-btn {
+    min-height: 36px;
+    font-size: 11px;
+  }
+
+  .recon-actions-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .recon-btn-primary {
+    min-height: 38px;
+  }
+
+  .recon-dossier-content,
+  .recon-targets-list {
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .recon-input-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .recon-actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recon-port-presets {
+    gap: 3px;
+  }
+
+  .recon-chip-btn {
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+
+  .recon-hop-row {
+    flex-wrap: wrap;
+    padding: 6px;
+  }
+
+  .recon-hop-geo {
+    order: 3;
+    width: 100%;
+    text-align: left;
+    margin-top: 2px;
+  }
+}

@@ -44,6 +44,7 @@ export function readShellElements(document = globalThis.document) {
     _dataPanel: document.getElementById('data-panel'),
     _scenePanel: document.getElementById('scene-panel'),
     _cctvPanel: document.getElementById('cctv-panel'),
+    _reconPanel: document.getElementById('recon-panel'),
     _radioPanel: document.getElementById('radio-panel'),
     _contextRadioDock: document.getElementById('context-radio-dock'),
     _contextRadioToggleBtn: document.getElementById('context-radio-toggle-btn'),
