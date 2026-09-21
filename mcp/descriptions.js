@@ -72,3 +72,15 @@ export const NETWORK_DESCRIPTIONS = {
   network_inventory_list:
     'List the networks stored in the local SQLite inventory (from past triangulations), most recently observed first. Each entry carries its fused position, confidence and source states.',
 };
+
+export const RECON_DESCRIPTIONS = {
+  recon_fingerprint:
+    'Actively inspect and fingerprint an exposed HTTP/HTTPS, TLS or RTSP endpoint (e.g. CCTV cameras, radio streams, IoT web servers). Gathers server banners, HTML titles, auth challenges, security headers (HSTS, CSP, CORS), and full TLS certificates (SANs, issuer, expiry), persisting the result in SQLite.',
+  recon_traceroute:
+    'Perform an active network traceroute probe towards a target IP or domain, measuring hop-by-hop RTT latencies, geolocating intermediate transit nodes, and storing the route in SQLite for 3D globe visualization.',
+  recon_dns_lookup:
+    'Perform active DNS reconnaissance on a domain or IP, querying all record types (A, AAAA, MX, TXT/SPF/DMARC, NS, SOA, CAA, PTR) and checking configuration policies, persisting findings in SQLite.',
+  recon_inventory_query:
+    'Query the persistent SQLite reconnaissance database for previously scanned targets, active fingerprints, network traces, and DNS records by query, tag, or target ID.',
+};
+

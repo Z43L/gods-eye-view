@@ -33,6 +33,7 @@ import { createBridgeClient } from './bridge.js';
 import {
   ACTION_DESCRIPTIONS,
   NETWORK_DESCRIPTIONS,
+  RECON_DESCRIPTIONS,
   UTILITY_DESCRIPTIONS,
 } from './descriptions.js';
 import {
@@ -40,6 +41,10 @@ import {
   summarizeDossier,
 } from '../server/network/triangulate.mjs';
 import { getDefaultInventory } from '../server/network/inventory.mjs';
+import { getDefaultReconDb } from '../server/recon/db.mjs';
+import { fingerprintTarget } from '../server/recon/fingerprint.mjs';
+import { runTraceroute } from '../server/recon/traceroute.mjs';
+import { runDnsRecon } from '../server/recon/dnsRecon.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, 'package.json'), 'utf8'));
@@ -219,6 +224,102 @@ server.registerTool(
       const inventory = getDefaultInventory();
       const networks = inventory.listNetworks({ limit: args?.limit ?? 50 });
       return toolJson({ ok: true, count: networks.length, networks });
+    } catch (error) {
+      return toolError(error?.message || String(error));
+    }
+  },
+);
+
+// --- Active Reconnaissance & Threat Intel tools (SQLite store) -------------
+
+server.registerTool(
+  'recon_fingerprint',
+  {
+    description: RECON_DESCRIPTIONS.recon_fingerprint,
+    inputSchema: {
+      host: z.string().min(1).max(256).describe('Target IP or hostname to fingerprint'),
+      targetType: z.string().optional().describe('Target category, e.g. cctv, radio, server'),
+      ports: z.array(z.number().int()).optional().describe('Optional custom ports to probe (e.g. [80, 443, 554, 8080])'),
+    },
+    annotations: { openWorldHint: true },
+  },
+  async (args) => {
+    try {
+      const result = await fingerprintTarget({
+        host: args.host,
+        targetType: args.targetType || 'server',
+        ports: args.ports || [80, 443, 554, 8080, 8443],
+      });
+      return toolJson({ ok: true, result });
+    } catch (error) {
+      return toolError(error?.message || String(error));
+    }
+  },
+);
+
+server.registerTool(
+  'recon_traceroute',
+  {
+    description: RECON_DESCRIPTIONS.recon_traceroute,
+    inputSchema: {
+      target: z.string().min(1).max(256).describe('Target hostname or IP address to trace'),
+      maxHops: z.number().int().min(1).max(30).optional().describe('Maximum hops to probe (default 20)'),
+    },
+    annotations: { openWorldHint: true },
+  },
+  async (args) => {
+    try {
+      const result = await runTraceroute({
+        target: args.target,
+        maxHops: args.maxHops ?? 20,
+      });
+      return toolJson({ ok: true, result });
+    } catch (error) {
+      return toolError(error?.message || String(error));
+    }
+  },
+);
+
+server.registerTool(
+  'recon_dns_lookup',
+  {
+    description: RECON_DESCRIPTIONS.recon_dns_lookup,
+    inputSchema: {
+      domain: z.string().min(1).max(256).describe('Domain name or IP address for active DNS inspection'),
+    },
+    annotations: { openWorldHint: true },
+  },
+  async (args) => {
+    try {
+      const result = await runDnsRecon({ domain: args.domain });
+      return toolJson({ ok: true, result });
+    } catch (error) {
+      return toolError(error?.message || String(error));
+    }
+  },
+);
+
+server.registerTool(
+  'recon_inventory_query',
+  {
+    description: RECON_DESCRIPTIONS.recon_inventory_query,
+    inputSchema: {
+      targetId: z.string().optional().describe('Optional specific target ID to get full dossier for'),
+      tag: z.string().optional().describe('Optional tag to filter targets'),
+      limit: z.number().int().min(1).max(100).optional().describe('Max targets to return (default 50)'),
+    },
+    annotations: { readOnlyHint: true },
+  },
+  async (args) => {
+    try {
+      const db = getDefaultReconDb();
+      if (args.targetId) {
+        const dossier = db.getFullDossier(args.targetId);
+        if (!dossier) return toolError(`Target "${args.targetId}" not found in SQLite reconnaissance store`);
+        return toolJson({ ok: true, dossier });
+      }
+      const targets = db.listTargets({ limit: args.limit ?? 50, tag: args.tag });
+      return toolJson({ ok: true, count: targets.length, targets });
     } catch (error) {
       return toolError(error?.message || String(error));
     }
