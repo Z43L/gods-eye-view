@@ -24,12 +24,22 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { GEV_ACTION_SCHEMAS } from '../src/voice/actionSchemas.js';
 import { actionInputShape } from './schema-zod.js';
 import { createBridgeClient } from './bridge.js';
-import { ACTION_DESCRIPTIONS, UTILITY_DESCRIPTIONS } from './descriptions.js';
+import {
+  ACTION_DESCRIPTIONS,
+  NETWORK_DESCRIPTIONS,
+  UTILITY_DESCRIPTIONS,
+} from './descriptions.js';
+import {
+  triangulateNetwork,
+  summarizeDossier,
+} from '../server/network/triangulate.mjs';
+import { getDefaultInventory } from '../server/network/inventory.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, 'package.json'), 'utf8'));
@@ -163,4 +173,56 @@ server.registerTool(
 );
 
 const transport = new StdioServerTransport();
+
+// --- Network inventory tools (passive triangulation + SQLite store) --------
+
+server.registerTool(
+  'network_triangulate',
+  {
+    description: NETWORK_DESCRIPTIONS.network_triangulate,
+    inputSchema: {
+      query: z
+        .string()
+        .min(1)
+        .max(256)
+        .describe('IP, hostname, BSSID, SSID or ASN to triangulate'),
+    },
+    annotations: { readOnlyHint: true, openWorldHint: true },
+  },
+  async (args) => {
+    try {
+      const dossier = await triangulateNetwork(args.query);
+      return toolJson({ ok: true, dossier: summarizeDossier(dossier) });
+    } catch (error) {
+      return toolError(error?.message || String(error));
+    }
+  },
+);
+
+server.registerTool(
+  'network_inventory_list',
+  {
+    description: NETWORK_DESCRIPTIONS.network_inventory_list,
+    inputSchema: {
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(200)
+        .optional()
+        .describe('Max networks to return (default 50)'),
+    },
+    annotations: { readOnlyHint: true },
+  },
+  async (args) => {
+    try {
+      const inventory = getDefaultInventory();
+      const networks = inventory.listNetworks({ limit: args?.limit ?? 50 });
+      return toolJson({ ok: true, count: networks.length, networks });
+    } catch (error) {
+      return toolError(error?.message || String(error));
+    }
+  },
+);
+
 await server.connect(transport);

@@ -1,5 +1,17 @@
 # Changelog
 
+- Add a passive network inventory backed by SQLite (`server/network/`): a
+  triangulation engine fans out to free public sources only (ip-api,
+  RIPEstat, PeeringDB, crt.sh, reverse DNS, plus WiGLE/OpenCelliD when the
+  user provides tokens) and fuses each answer into an honest geo dossier —
+  weighted centroid, conflict detection between disagreeing strong sources,
+  and explicit confidence ceilings for anycast/CGNAT/private addresses.
+  Nothing scans or probes third-party networks. Every execution is
+  upserted into `data/network-inventory.db` (gitignored, overridable via
+  `GEV_INVENTORY_DB`) with one `observations` row per run, and the MCP
+  server exposes `network_triangulate` and `network_inventory_list` tools.
+  Node's stdlib `node:sqlite` is used; no new dependencies.
+
 - Enable responsive trackpad pinch zoom on the globe. Browser pixel-mode
   `Ctrl+wheel` pinch gestures now reach Cesium with bounded amplification,
   while ordinary wheel, line-mode and touch-pinch inputs retain their existing

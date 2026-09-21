@@ -65,3 +65,10 @@ export const UTILITY_DESCRIPTIONS = {
   gev_capture_screenshot:
     'Capture a JPEG screenshot of the current globe view, so you can see what the app shows.',
 };
+
+export const NETWORK_DESCRIPTIONS = {
+  network_triangulate:
+    'Passively triangulate a network identifier (IP, hostname, BSSID, SSID or ASN) across free public sources (ip-api, RIPEstat, PeeringDB, crt.sh, reverse DNS, WiGLE/OpenCelliD when tokens are set). Returns a fused dossier with position, honest confidence and per-source evidence, and stores it in the local SQLite network inventory. 100% passive: no scanning, no probing of third-party networks.',
+  network_inventory_list:
+    'List the networks stored in the local SQLite inventory (from past triangulations), most recently observed first. Each entry carries its fused position, confidence and source states.',
+};

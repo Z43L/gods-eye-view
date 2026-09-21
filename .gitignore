@@ -19,3 +19,8 @@ output/
 3d-models/
 pinokio/ENVIRONMENT
 pinokio/.installed
+
+# Network inventory SQLite (populated at runtime by the passive triangulation
+# engine; never committed). Override location with GEV_INVENTORY_DB.
+data/*.db
+data/*.db-*
