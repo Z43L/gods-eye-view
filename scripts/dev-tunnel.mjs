@@ -138,7 +138,7 @@ async function main() {
   const viteBin = join(root, 'node_modules', 'vite', 'bin', 'vite.js');
   const dev = spawn(process.execPath, [viteBin], {
     cwd: root,
-    env: { ...process.env, PORT: String(PORT), GEV_AGENT_TOKEN: TOKEN },
+    env: { ...process.env, PORT: String(PORT), GEV_AGENT_TOKEN: TOKEN, GEV_TUNNEL: '1' },
     stdio: 'inherit',
   });
   const children = new Set([dev]);

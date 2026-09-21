@@ -10,6 +10,12 @@ export function createBrowserViteConfig({
   host = 'localhost',
   port = 4173,
 } = {}) {
+  // GEV_TUNNEL=1 is set by scripts/dev-tunnel.mjs: the Cloudflare quick
+  // tunnel hostname is random per run, so allow any *.trycloudflare.com
+  // host while the tunnel is up. The agent bridge itself still requires
+  // the x-gev-agent-token header — this only lifts Vite's host check.
+  const tunnelMode = process.env.GEV_TUNNEL === '1';
+  const baseHosts = ['localhost', '127.0.0.1', '.local'];
   return {
     plugins: [cesium(), applicationHtmlPlugin(), ...plugins],
     ...(publicDir === undefined ? {} : { publicDir }),
@@ -19,7 +25,9 @@ export function createBrowserViteConfig({
       allowedHosts:
         host === '0.0.0.0' || host === '::'
           ? true
-          : ['localhost', '127.0.0.1', '.local'],
+          : tunnelMode
+            ? [...baseHosts, '.trycloudflare.com']
+            : baseHosts,
       fs: {
         deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/**', '**/ENVIRONMENT'],
       },
