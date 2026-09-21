@@ -5,6 +5,7 @@
 
 export const DEFAULT_BASE_URL = 'http://localhost:4173';
 export const DEFAULT_COMMAND_TIMEOUT_MS = 120000;
+export const AGENT_TOKEN_HEADER = 'x-gev-agent-token';
 
 export function bridgeError(message, hint) {
   const error = new Error(hint ? `${message} — ${hint}` : message);
@@ -16,15 +17,20 @@ export function createBridgeClient({
   baseUrl = DEFAULT_BASE_URL,
   fetchImpl = fetch,
   commandTimeoutMs = DEFAULT_COMMAND_TIMEOUT_MS,
+  token = process.env.GEV_AGENT_TOKEN || undefined,
 } = {}) {
   const base = String(baseUrl).replace(/\/+$/, '');
+  const cleanToken = String(token || '').trim() || undefined;
 
   const requestJson = async (method, path, body, { timeoutMs } = {}) => {
     let response;
     try {
       response = await fetchImpl(`${base}${path}`, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(cleanToken ? { [AGENT_TOKEN_HEADER]: cleanToken } : {}),
+        },
         body: body === undefined ? undefined : JSON.stringify(body),
         signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
       });

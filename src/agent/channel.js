@@ -21,6 +21,15 @@ const POLL_WAIT_MS = 25000;
 const HEARTBEAT_MS = 20000;
 const RETRY_BACKOFF_MS = 3000;
 
+// Injected by the dev server (agentBridge plugin) when GEV_AGENT_TOKEN is
+// set, so the channel keeps working when the app is opened through a tunnel.
+const AGENT_TOKEN_HEADER = 'x-gev-agent-token';
+function bridgeHeaders() {
+  const token =
+    typeof window !== 'undefined' ? String(window.__GEV_AGENT_TOKEN || '') : '';
+  return token !== '' ? { [AGENT_TOKEN_HEADER]: token } : {};
+}
+
 function bridgeEnabled() {
   try {
     const param = new URLSearchParams(window.location.search).get('agent');
@@ -47,7 +56,7 @@ function captureScreenshot(viewer) {
 async function postJson(url, payload, signal) {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...bridgeHeaders() },
     body: JSON.stringify(payload),
     signal,
   });
@@ -143,6 +152,7 @@ export function initAgentChannel(options) {
   const pollOnce = async () => {
     const response = await fetch(`/api/agent/poll?waitMs=${POLL_WAIT_MS}`, {
       signal,
+      headers: bridgeHeaders(),
     });
     if (response.status === 204) return null;
     if (response.status === 404) throw new Error('bridge-endpoints-missing');
@@ -154,7 +164,10 @@ export function initAgentChannel(options) {
     // Fail fast when the bridge endpoints are absent (e.g. preview builds):
     // one status probe decides whether the loop is worthwhile.
     try {
-      const status = await fetch('/api/agent/status', { signal });
+      const status = await fetch('/api/agent/status', {
+        signal,
+        headers: bridgeHeaders(),
+      });
       if (status.status === 404) return;
     } catch {
       return;

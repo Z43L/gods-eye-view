@@ -63,10 +63,46 @@ For Claude Code: `claude mcp add gods-eye-view -- node /absolute/path/to/gods-ey
 
 ## Environment
 
-| Variable               | Default                  | Meaning                                              |
-| ---------------------- | ------------------------ | ---------------------------------------------------- |
-| `GEV_BASE_URL`         | `http://localhost:4173`  | Dev server URL the MCP server talks to               |
-| `GEV_COMMAND_TIMEOUT_MS` | `120000`               | How long a tool waits for the app to finish          |
+| Variable                 | Default                 | Meaning                                                  |
+| ------------------------ | ----------------------- | -------------------------------------------------------- |
+| `GEV_BASE_URL`           | `http://localhost:4173` | Dev server URL the MCP server talks to                   |
+| `GEV_COMMAND_TIMEOUT_MS` | `120000`                | How long a tool waits for the app to finish              |
+| `GEV_AGENT_TOKEN`        | _(unset)_               | Bridge token for remote access; must match on both sides |
+
+## Remote access via Cloudflare tunnel
+
+`npm run dev:tunnel` starts the dev server **and** opens a Cloudflare quick
+tunnel automatically (installing `cloudflared` on demand: Homebrew on macOS,
+direct download on Linux). It generates a random `GEV_AGENT_TOKEN` unless you
+pass one (`GEV_AGENT_TOKEN=… npm run dev:tunnel` or `--token`), then prints
+the public URL, plus a block ready to copy-paste into an AI chat to connect
+it directly:
+
+```
+GEV_MCP_URL=https://<random>.trycloudflare.com
+GEV_MCP_TOKEN=<redacted>
+```
+
+…or run the MCP server yourself with the exact command it prints:
+
+```
+GEV_BASE_URL=https://<random>.trycloudflare.com \
+GEV_AGENT_TOKEN=<token> \
+  npm run mcp
+```
+
+Open the public URL in a browser — the agent channel starts there and
+authenticates with the injected token. A remote agent then drives the app
+exactly like a local one.
+
+Security notes:
+
+- With the token set, the bridge admits requests from anywhere that present
+  it — the token is the whole protection, so keep it long and random.
+- Without the token, the bridge stays loopback-only and refuses proxied
+  traffic (the default for plain `npm run dev`).
+- Quick tunnels need no Cloudflare account, but the URL is public to anyone
+  who knows it. Never commit the token.
 
 ## Tools
 
@@ -96,7 +132,7 @@ Utilities: `gev_app_status`, `gev_wait_for_app`, `gev_capture_screenshot`
 
 1. `gev_fly_to_location` `{ "query": "Madrid", "viewMode": "overview" }`
 2. `gev_set_layer_visibility` `{ "layerId": "flights", "enabled": true }`
-3. `gev_capture_screenshot` `{}` → the agent *sees* the globe.
+3. `gev_capture_screenshot` `{}` → the agent _sees_ the globe.
 
 ## Notes & limits
 
@@ -109,7 +145,10 @@ Utilities: `gev_app_status`, `gev_wait_for_app`, `gev_capture_screenshot`
   `GEV_COMMAND_TIMEOUT_MS` if a tool times out on long flights.
 - **Stale commands expire.** A command unclaimed for 5 minutes is dropped so a
   dead client can never fire it late.
-- **Localhost only.** The bridge refuses non-loopback and proxied requests —
-  it executes arbitrary app actions, so it must never be exposed to a network.
+- **Localhost only (unless tokened).** Without `GEV_AGENT_TOKEN`, the bridge
+  refuses non-loopback and proxied requests — it executes arbitrary app
+  actions, so it must never be exposed to a network. With the token set,
+  requests presenting it in the `x-gev-agent-token` header are admitted from
+  anywhere (this is what `npm run dev:tunnel` uses).
 - **Tests.** `npm run mcp:test` (MCP package), plus
   `src/agent/bridgeQueue.test.mjs` in the repo suite (`npm test`).

@@ -214,11 +214,40 @@ const PROXY_SIGNALS = [
 ];
 
 /**
- * Pure admission gate for the bridge HTTP surface: loopback socket only, and
- * never behind a reverse proxy. A queued command executes arbitrary app
- * actions, so the bridge must not answer LAN or tunnel traffic.
+ * Pure admission gate for the bridge HTTP surface.
+ *
+ * Default: loopback socket only, never behind a reverse proxy. A queued
+ * command executes arbitrary app actions, so the bridge must not answer LAN
+ * or tunnel traffic uninvited.
+ *
+ * Remote use: when the dev server is started with `GEV_AGENT_TOKEN` set, a
+ * request carrying the same token in the `x-gev-agent-token` header is
+ * admitted from anywhere (tunnel, LAN). The token is the whole protection
+ * there, so it must be long and random.
  */
-export function admitAgentBridgeRequest({ remoteAddress, headers = {} } = {}) {
+export const AGENT_TOKEN_HEADER = 'x-gev-agent-token';
+
+function tokensEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+export function admitAgentBridgeRequest({
+  remoteAddress,
+  headers = {},
+  token,
+} = {}) {
+  const configured = String(token || '').trim();
+  const presented = String(headers[AGENT_TOKEN_HEADER] || '').trim();
+  if (
+    configured !== '' &&
+    presented !== '' &&
+    tokensEqual(configured, presented)
+  )
+    return { ok: true };
   for (const name of PROXY_SIGNALS) {
     if (String(headers[name] || '').trim() !== '')
       return {

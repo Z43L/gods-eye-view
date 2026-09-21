@@ -1,6 +1,7 @@
 import {
   createAgentBridgeQueue,
   admitAgentBridgeRequest,
+  AGENT_TOKEN_HEADER,
 } from '../../src/agent/bridgeQueue.mjs';
 import { GEV_ACTION_SCHEMAS } from '../../src/voice/actionSchemas.js';
 
@@ -19,8 +20,13 @@ import { GEV_ACTION_SCHEMAS } from '../../src/voice/actionSchemas.js';
  *   GET  /api/agent/status         -> { connected, pendingCommands, app }
  *   POST /api/agent/reset         -> clears the queue
  *
- * Everything here is loopback-only: the bridge must never answer proxied or
- * LAN traffic, because a queued command executes arbitrary app actions.
+ * Everything here is loopback-only by default: the bridge refuses proxied or
+ * non-loopback traffic, because a queued command executes arbitrary app
+ * actions. Set `GEV_AGENT_TOKEN` to allow remote access (tunnel, LAN):
+ * requests carrying the token in the `x-gev-agent-token` header are admitted
+ * from anywhere. The token is injected into the page as
+ * `window.__GEV_AGENT_TOKEN` so the in-page channel keeps working when the
+ * app itself is opened through the tunnel.
  */
 
 /** Synthetic commands handled by the app-side channel itself. */
@@ -33,6 +39,9 @@ const KNOWN_COMMAND_NAMES = new Set([
 
 const HEARTBEAT_TTL_MS = 45 * 1000;
 const MAX_BODY_BYTES = 256 * 1024;
+
+// Shared secret for remote access. Empty = loopback-only (default).
+const AGENT_TOKEN = String(process.env.GEV_AGENT_TOKEN || '').trim();
 
 function agentBridgeEndpoint() {
   const queue = createAgentBridgeQueue();
@@ -51,6 +60,7 @@ function agentBridgeEndpoint() {
     const verdict = admitAgentBridgeRequest({
       remoteAddress: req.socket?.remoteAddress,
       headers: req.headers,
+      token: AGENT_TOKEN || undefined,
     });
     if (!verdict.ok) respond(res, verdict.status, { error: verdict.error });
     return verdict.ok;
@@ -200,6 +210,16 @@ function agentBridgeEndpoint() {
         queue.reset();
         respond(res, 200, { ok: true });
       });
+    },
+
+    // Expose the agent token to the page so the in-page channel can
+    // authenticate when the app itself is opened through a tunnel/URL that
+    // is not loopback. Anyone who can load the page already needs the
+    // tunnel URL; the token stays a shared secret for that audience.
+    transformIndexHtml(html) {
+      if (!AGENT_TOKEN) return html;
+      const snippet = `<script>window.__GEV_AGENT_TOKEN=${JSON.stringify(AGENT_TOKEN)};</script>`;
+      return html.replace('</head>', `${snippet}</head>`);
     },
   };
 }

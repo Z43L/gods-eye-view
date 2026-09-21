@@ -51,7 +51,10 @@ test('takeNextCommand resolves null when the wait expires', async () => {
 test('complete/take result round-trip, waiting included', async () => {
   const { queue } = controllableQueue();
   const waiting = queue.takeResult('cmd-9', { waitMs: 5000 });
-  assert.equal(queue.completeCommand('cmd-9', { ok: true, result: { n: 1 } }), true);
+  assert.equal(
+    queue.completeCommand('cmd-9', { ok: true, result: { n: 1 } }),
+    true,
+  );
   const outcome = await waiting;
   assert.equal(outcome.ok, true);
   assert.deepEqual(outcome.result, { n: 1 });
@@ -117,7 +120,10 @@ test('validateCommandShape rejects malformed commands', () => {
 });
 
 test('admission allows loopback only and refuses proxies', () => {
-  assert.equal(admitAgentBridgeRequest({ remoteAddress: '127.0.0.1' }).ok, true);
+  assert.equal(
+    admitAgentBridgeRequest({ remoteAddress: '127.0.0.1' }).ok,
+    true,
+  );
   assert.equal(admitAgentBridgeRequest({ remoteAddress: '::1' }).ok, true);
   assert.equal(
     admitAgentBridgeRequest({ remoteAddress: '::ffff:127.0.0.1' }).ok,
@@ -133,4 +139,43 @@ test('admission allows loopback only and refuses proxies', () => {
   assert.equal(proxied.ok, false);
   assert.equal(proxied.status, 403);
   assert.equal(admitAgentBridgeRequest({}).ok, false);
+});
+
+test('admission accepts the agent token from anywhere, rejects wrong tokens', () => {
+  const token = 's3cr3t-token';
+  // Remote address + proxy headers are fine when the token matches.
+  assert.equal(
+    admitAgentBridgeRequest({
+      remoteAddress: '203.0.113.7',
+      headers: {
+        'x-gev-agent-token': token,
+        'x-forwarded-for': '203.0.113.7',
+        'cf-ray': 'abc',
+      },
+      token,
+    }).ok,
+    true,
+  );
+  // Wrong token falls back to loopback rules: remote refused…
+  assert.equal(
+    admitAgentBridgeRequest({
+      remoteAddress: '203.0.113.7',
+      headers: { 'x-gev-agent-token': 'wrong' },
+      token,
+    }).ok,
+    false,
+  );
+  // …but loopback still works without any token.
+  assert.equal(
+    admitAgentBridgeRequest({ remoteAddress: '127.0.0.1', token }).ok,
+    true,
+  );
+  // No configured token: a presented token buys nothing.
+  assert.equal(
+    admitAgentBridgeRequest({
+      remoteAddress: '203.0.113.7',
+      headers: { 'x-gev-agent-token': 'anything' },
+    }).ok,
+    false,
+  );
 });

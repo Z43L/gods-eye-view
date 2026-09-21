@@ -47,7 +47,8 @@
     "qa:transit": "node scripts/qa-transit.mjs",
     "mcp": "node mcp/server.mjs",
     "mcp:install": "npm --prefix mcp install --no-audit --no-fund",
-    "mcp:test": "npm --prefix mcp test"
+    "mcp:test": "npm --prefix mcp test",
+    "dev:tunnel": "node scripts/dev-tunnel.mjs"
   },
   "dependencies": {
     "@mapbox/vector-tile": "^3.0.0",

@@ -96,3 +96,18 @@ test('waitForApp times out with guidance', async () => {
     /did not connect/,
   );
 });
+
+test('client sends the agent token header when configured', async () => {
+  const seen = [];
+  const fetchImpl = async (url, options = {}) => {
+    seen.push(options.headers || {});
+    return { status: 200, ok: true, json: async () => ({ ok: true }) };
+  };
+  const withToken = createBridgeClient({ fetchImpl, token: 'tok-123' });
+  await withToken.status();
+  assert.equal(seen[0]['x-gev-agent-token'], 'tok-123');
+
+  const withoutToken = createBridgeClient({ fetchImpl, token: undefined });
+  await withoutToken.status();
+  assert.ok(!('x-gev-agent-token' in seen[1]));
+});

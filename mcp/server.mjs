@@ -17,6 +17,8 @@
  * Env:
  *   GEV_BASE_URL           dev server URL (default http://localhost:4173)
  *   GEV_COMMAND_TIMEOUT_MS per-tool timeout waiting for the app (default 120000)
+ *   GEV_AGENT_TOKEN        bridge token for remote access (must match the dev
+ *                          server's; see `npm run dev:tunnel`)
  */
 
 import { readFileSync } from 'node:fs';
@@ -27,10 +29,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { GEV_ACTION_SCHEMAS } from '../src/voice/actionSchemas.js';
 import { actionInputShape } from './schema-zod.js';
 import { createBridgeClient } from './bridge.js';
-import {
-  ACTION_DESCRIPTIONS,
-  UTILITY_DESCRIPTIONS,
-} from './descriptions.js';
+import { ACTION_DESCRIPTIONS, UTILITY_DESCRIPTIONS } from './descriptions.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(here, 'package.json'), 'utf8'));
